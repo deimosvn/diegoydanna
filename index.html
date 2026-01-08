@@ -539,8 +539,8 @@
     /* ==================== PENDINGS ICON + MINI PANEL ==================== */
     .pending-icon-btn {
       position: relative;
-      width: var(--pending-btn-size);
-      height: var(--pending-btn-size);
+      width: min(var(--pending-btn-size), calc(100vw - 24px));
+      height: min(var(--pending-btn-size), calc(100vw - 24px));
       border-radius: 999px;
       border: none;
       background: none;
@@ -572,8 +572,8 @@
     /* Siempre visible: el header es sticky, no hace falta fixed */
 
     .pending-icon-btn img {
-      width: var(--pending-img-size);
-      height: var(--pending-img-size);
+      width: min(var(--pending-img-size), calc(100vw - 72px));
+      height: min(var(--pending-img-size), calc(100vw - 72px));
       object-fit: contain;
       display: block;
       pointer-events: none;
@@ -741,9 +741,9 @@
 
     @media (max-width: 520px) {
       :root {
-        --pending-btn-size: 320px;
-        --pending-img-size: 280px;
-        --pending-offset: 14px;
+        --pending-btn-size: 260px;
+        --pending-img-size: 225px;
+        --pending-offset: 10px;
       }
 
       .pending-panel {
@@ -756,9 +756,9 @@
 
     @media (max-width: 360px) {
       :root {
-        --pending-btn-size: 290px;
-        --pending-img-size: 255px;
-        --pending-offset: 12px;
+        --pending-btn-size: 230px;
+        --pending-img-size: 200px;
+        --pending-offset: 8px;
       }
     }
 
