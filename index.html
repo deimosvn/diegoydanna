@@ -580,15 +580,16 @@
       user-select: none;
     }
 
+    /* Nota: el tamaño real del botón/imagen se controla por variables (--pending-*) */
     @media (max-width: 520px) {
       .pending-icon-btn {
-        width: 44px;
-        height: 44px;
+        width: var(--pending-btn-size);
+        height: var(--pending-btn-size);
       }
 
       .pending-icon-btn img {
-        width: 32px;
-        height: 32px;
+        width: var(--pending-img-size);
+        height: var(--pending-img-size);
       }
     }
 
@@ -740,8 +741,8 @@
 
     @media (max-width: 520px) {
       :root {
-        --pending-btn-size: 230px;
-        --pending-img-size: 200px;
+        --pending-btn-size: 320px;
+        --pending-img-size: 280px;
         --pending-offset: 14px;
       }
 
@@ -750,6 +751,14 @@
         right: 12px;
         width: auto;
         bottom: calc(var(--pending-offset) + env(safe-area-inset-bottom) + var(--pending-btn-size) + 12px);
+      }
+    }
+
+    @media (max-width: 360px) {
+      :root {
+        --pending-btn-size: 290px;
+        --pending-img-size: 255px;
+        --pending-offset: 12px;
       }
     }
 
