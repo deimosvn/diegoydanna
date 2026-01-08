@@ -66,6 +66,11 @@
       --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
       --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
       --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+
+      /* Pendientes (icono fijo) */
+      --pending-btn-size: 132px;
+      --pending-img-size: 112px;
+      --pending-offset: 14px;
     }
 
     /* DIEGO THEME */
@@ -284,15 +289,17 @@
       min-height: 260px;
       object-fit: cover;
       display: block;
+      will-change: transform;
+      transform-origin: 50% 40%;
       transform: scale(1.04);
       filter: saturate(1.05) contrast(1.03);
       animation: coverKenBurns 16s ease-in-out infinite;
     }
 
     @keyframes coverKenBurns {
-      0% { transform: scale(1.04) translateY(0px); }
-      50% { transform: scale(1.10) translateY(-6px); }
-      100% { transform: scale(1.04) translateY(0px); }
+      0% { transform: scale(1.04) translate3d(0px, 0px, 0); }
+      50% { transform: scale(1.11) translate3d(-8px, -6px, 0); }
+      100% { transform: scale(1.04) translate3d(0px, 0px, 0); }
     }
 
     .cover-hero::after {
@@ -302,6 +309,15 @@
       opacity: 0.22;
       pointer-events: none;
       z-index: 2;
+      background-size: 140% 140%;
+      background-position: 0% 0%;
+      animation: coverOverlayShift 12s ease-in-out infinite;
+    }
+
+    @keyframes coverOverlayShift {
+      0% { background-position: 0% 0%; }
+      50% { background-position: 100% 100%; }
+      100% { background-position: 0% 0%; }
     }
 
     body.theme-diego .cover-hero::after {
@@ -381,6 +397,7 @@
 
     @media (prefers-reduced-motion: reduce) {
       .cover-hero img { animation: none; transform: none; }
+      .cover-hero::after { animation: none; }
       .cover-hero:hover img { transform: none; }
     }
 
@@ -402,6 +419,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      position: relative;
     }
 
     .brand {
@@ -438,6 +456,253 @@
       display: flex;
       gap: 12px;
       align-items: center;
+    }
+
+    /* ==================== PENDINGS ICON + MINI PANEL ==================== */
+    .pending-icon-btn {
+      position: relative;
+      width: var(--pending-btn-size);
+      height: var(--pending-btn-size);
+      border-radius: 999px;
+      border: none;
+      background: none;
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition-fast);
+      flex: 0 0 auto;
+    }
+
+    /* Burbuja flotante independiente */
+    #pendingIconBtn {
+      position: fixed;
+      right: calc(var(--pending-offset) + env(safe-area-inset-right));
+      bottom: calc(var(--pending-offset) + env(safe-area-inset-bottom));
+      z-index: 10050;
+      filter: drop-shadow(0 10px 15px -3px rgba(0, 0, 0, 0.2));
+      animation: pendingFloat 3.2s ease-in-out infinite;
+      transform: translateZ(0);
+    }
+
+    @keyframes pendingFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    /* Siempre visible: el header es sticky, no hace falta fixed */
+
+    .pending-icon-btn img {
+      width: var(--pending-img-size);
+      height: var(--pending-img-size);
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @media (max-width: 520px) {
+      .pending-icon-btn {
+        width: 44px;
+        height: 44px;
+      }
+
+      .pending-icon-btn img {
+        width: 32px;
+        height: 32px;
+      }
+    }
+
+    .pending-icon-btn:hover {
+      opacity: 0.85;
+    }
+
+    .pending-icon-btn.has-pending {
+      animation: pendingFloat 3.2s ease-in-out infinite, pendingPulse 1.6s ease-in-out infinite;
+    }
+
+    @keyframes pendingPulse {
+      0%, 100% { filter: drop-shadow(0 10px 15px -3px rgba(0, 0, 0, 0.2)); }
+      50% { filter: drop-shadow(0 15px 20px -3px rgba(0, 0, 0, 0.25)); }
+    }
+
+    .pending-badge {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      min-width: 34px;
+      height: 34px;
+      padding: 0 10px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 800;
+      color: white;
+      border: 2px solid var(--bg-white);
+      box-shadow: var(--shadow-sm);
+      line-height: 1;
+    }
+
+    body.theme-diego .pending-badge { background: var(--diego-primary); }
+    body.theme-danna .pending-badge { background: var(--danna-primary); }
+
+    .pending-panel {
+      position: fixed;
+      right: calc(var(--pending-offset) + env(safe-area-inset-right));
+      bottom: calc(var(--pending-offset) + env(safe-area-inset-bottom) + var(--pending-btn-size) + 12px);
+      width: min(460px, calc(100vw - 32px));
+      background: var(--bg-white);
+      border: 1px solid var(--text-light);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xl);
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: var(--transition);
+      z-index: 10060;
+    }
+
+    .pending-panel.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .pending-panel-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--text-light);
+      background: var(--bg-light);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .pending-panel-title {
+      font-weight: 800;
+      color: var(--text-primary);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pending-panel-close {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--text-light);
+      background: var(--bg-white);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: var(--transition-fast);
+    }
+
+    .pending-panel-close:hover {
+      background: var(--bg-light);
+      color: var(--text-primary);
+      border-color: var(--text-secondary);
+    }
+
+    .pending-panel-body {
+      padding: 14px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .pending-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .pending-row-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-primary);
+      font-weight: 700;
+      min-width: 0;
+    }
+
+    .pending-row-left span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pending-row-count {
+      font-weight: 900;
+      font-size: 1.2rem;
+      color: var(--text-primary);
+      flex: 0 0 auto;
+    }
+
+    .pending-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .pending-note {
+      color: var(--text-tertiary);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      margin-top: 2px;
+    }
+
+    @media (max-width: 520px) {
+      :root {
+        --pending-btn-size: 150px;
+        --pending-img-size: 125px;
+        --pending-offset: 14px;
+      }
+
+      .pending-panel {
+        left: 12px;
+        right: 12px;
+        width: auto;
+        bottom: calc(var(--pending-offset) + env(safe-area-inset-bottom) + var(--pending-btn-size) + 12px);
+      }
+    }
+
+    /* Header responsive con icono grande */
+    @media (max-width: 480px) {
+      .header-actions {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+      }
+
+      .user-badge {
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .header-actions {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        gap: 8px;
+      }
+
+      .logout-btn {
+        grid-column: 1 / -1;
+        justify-self: stretch;
+        text-align: center;
+      }
     }
 
     .user-badge {
@@ -2368,6 +2633,52 @@
       border-radius: 2px;
     }
 
+    /* Mobile: que la canción no se "apriete" y el embed sea responsive */
+    @media (max-width: 520px) {
+      .music-player {
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 14px;
+      }
+
+      .player-btn {
+        width: 44px;
+        height: 44px;
+      }
+
+      .player-info {
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      .player-progress {
+        width: 100%;
+        height: 4px;
+      }
+
+      #playerContainer {
+        width: 100%;
+      }
+
+      #playerContainer iframe,
+      #playerContainer video {
+        width: 100% !important;
+        max-width: 100% !important;
+        aspect-ratio: 16 / 9;
+        height: auto !important;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+      }
+
+      .modal-meta {
+        grid-template-columns: 1fr;
+      }
+
+      .letters-list {
+        max-height: 55vh;
+      }
+    }
+
     /* ==================== CUSTOM SELECT ==================== */
     .custom-select {
       position: relative;
@@ -2695,6 +3006,16 @@
   </style>
 </head>
 <body>
+  <script>
+    // Login rápido: si se toca Diego/Danna antes de que cargue el JS completo,
+    // guardamos la elección y la ejecutamos cuando el initApp real esté listo.
+    window.__queuedLoginUser = window.__queuedLoginUser || null;
+    if (typeof window.initApp !== "function") {
+      window.initApp = function(user) {
+        window.__queuedLoginUser = user;
+      };
+    }
+  </script>
   <!-- LOGIN SCREEN -->
   <div class="login-screen" id="loginScreen">
     <div class="login-container">
@@ -2728,12 +3049,52 @@
           <h1>Diego Y Danna</h1>
           <p id="brandSubtitle">Diego Y Danna</p>
         </div>
+      </div>
       <div class="header-actions">
         <div class="user-badge" id="userBadge"></div>
         <button class="logout-btn" onclick="window.logout()"><i class="fas fa-sign-out-alt"></i> Salir</button>
       </div>
     </div>
   </header>
+
+  <!-- Burbuja flotante de pendientes (solo cuando hay sesión) -->
+  <div id="pendingFloating" style="display:none;">
+    <button class="pending-icon-btn" id="pendingIconBtn" type="button" onclick="window.onPendingIconClick(event)" title="Pendientes" aria-label="Pendientes" aria-haspopup="dialog" aria-expanded="false">
+      <img id="pendingIconImg" src="inactiva.png" alt="Pendientes" />
+      <span class="pending-badge" id="pendingTotalBadge" style="display:none;">0</span>
+    </button>
+
+    <div class="pending-panel" id="pendingPanel" aria-hidden="true">
+      <div class="pending-panel-header">
+        <div class="pending-panel-title"><i class="fas fa-bell"></i> Pendientes</div>
+        <button class="pending-panel-close" type="button" onclick="window.togglePendingPanel(false)" aria-label="Cerrar pendientes" title="Cerrar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="pending-panel-body">
+        <div class="pending-row">
+          <div class="pending-row-left"><i class="fas fa-envelope-open-text"></i> <span>Cartas sin leer</span></div>
+          <div class="pending-row-count"><span id="pendingLetters">0</span></div>
+        </div>
+        <div class="pending-row">
+          <div class="pending-row-left"><i class="fas fa-camera-retro"></i> <span>Fotos nuevas</span></div>
+          <div class="pending-row-count"><span id="pendingPhotos">0</span></div>
+        </div>
+        <div class="pending-row">
+          <div class="pending-row-left"><i class="fas fa-star"></i> <span>Bonelles por calificar</span></div>
+          <div class="pending-row-count"><span id="pendingBonelles">0</span></div>
+        </div>
+
+        <div class="pending-actions">
+          <button class="btn btn-secondary btn-small" type="button" onclick="window.goToTab('cartas'); window.togglePendingPanel(false)"><i class="fas fa-feather-alt"></i> Cartas</button>
+          <button class="btn btn-secondary btn-small" type="button" onclick="window.goToTab('galeria'); window.togglePendingPanel(false)"><i class="fas fa-images"></i> Galería</button>
+          <button class="btn btn-secondary btn-small" type="button" onclick="window.goToTab('bonelles'); window.togglePendingPanel(false)"><i class="fas fa-utensils"></i> Bonelles</button>
+        </div>
+
+        <div class="pending-note"><i class="fas fa-heart"></i> Se actualiza al abrir una carta o la galería.</div>
+      </div>
+    </div>
+  </div>
 
   <main id="mainContent" style="display: none">
     <div class="tabs">
@@ -2935,45 +3296,6 @@
                   <div class="date-roulette-done-title"><i class="fas fa-history"></i> Citas hechas</div>
                   <div class="dates-done-list" id="datesDoneList"></div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <h2><i class="fas fa-bell"></i> Pendientes</h2>
-            <div style="display:flex; gap:8px; flex-wrap:wrap;">
-              <button class="btn btn-secondary" style="font-size:0.85rem;" onclick="window.goToTab('cartas')"><i class="fas fa-feather-alt"></i> Ver cartas</button>
-              <button class="btn btn-secondary" style="font-size:0.85rem;" onclick="window.goToTab('galeria')"><i class="fas fa-images"></i> Ver galería</button>
-              <button class="btn btn-secondary" style="font-size:0.85rem;" onclick="window.goToTab('bonelles')"><i class="fas fa-utensils"></i> Ver bonelles</button>
-            </div>
-          </div>
-          <div class="card-body">
-            <div style="display:flex; flex-direction:column; gap:10px;">
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-                <div style="display:flex; align-items:center; gap:10px; color: var(--text-primary); font-weight: 700;">
-                  <i class="fas fa-envelope-open-text"></i>
-                  <span>Cartas recibidas sin leer</span>
-                </div>
-                <div style="font-weight: 900; font-size: 1.4rem;"><span id="pendingLetters">0</span></div>
-              </div>
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-                <div style="display:flex; align-items:center; gap:10px; color: var(--text-primary); font-weight: 700;">
-                  <i class="fas fa-camera-retro"></i>
-                  <span>Fotos nuevas</span>
-                </div>
-                <div style="font-weight: 900; font-size: 1.4rem;"><span id="pendingPhotos">0</span></div>
-              </div>
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-                <div style="display:flex; align-items:center; gap:10px; color: var(--text-primary); font-weight: 700;">
-                  <i class="fas fa-star"></i>
-                  <span>Bonelles por calificar</span>
-                </div>
-                <div style="font-weight: 900; font-size: 1.4rem;"><span id="pendingBonelles">0</span></div>
-              </div>
-              <div style="color: var(--text-tertiary); font-size: 0.9rem; line-height: 1.6;">
-                <i class="fas fa-heart"></i> Se actualiza al abrir una carta o la galería.
               </div>
             </div>
           </div>
@@ -3427,6 +3749,9 @@
         
         const mainHeader = document.getElementById("mainHeader");
         if (mainHeader) mainHeader.style.display = "block";
+
+        const pendingFloating = document.getElementById("pendingFloating");
+        if (pendingFloating) pendingFloating.style.display = "block";
         
         const mainContent = document.getElementById("mainContent");
         if (mainContent) mainContent.style.display = "block";
@@ -3457,6 +3782,23 @@
         window.showToast("Error al cargar: " + err.message, "error");
       }
     };
+
+    // Si se tocó Diego/Danna antes de que cargara el JS completo, ejecutar ahora.
+    try {
+      if (window.__queuedLoginUser) {
+        const queued = window.__queuedLoginUser;
+        window.__queuedLoginUser = null;
+        setTimeout(() => {
+          try {
+            window.initApp(queued);
+          } catch (e) {
+            console.error("Error ejecutando login en cola:", e);
+          }
+        }, 0);
+      }
+    } catch (e) {
+      console.error("Error procesando login en cola:", e);
+    }
 
     window.ensureSeenMarkers = function() {
       try {
@@ -3579,10 +3921,11 @@
         if (pendingPhotosEl) pendingPhotosEl.textContent = String(pendingPhotos);
 
         // Bonelles: pendientes por calificar (solo los creados por la otra persona)
+        let pendingBonelles = 0;
         try {
           const me = String(currentUser).toLowerCase();
           const bonSnap = await db.collection("bonelles").limit(1000).get();
-          let pendingBonelles = 0;
+          pendingBonelles = 0;
           bonSnap.forEach(doc => {
             const data = doc.data() || {};
             const author = String(data.author || "").toLowerCase();
@@ -3597,12 +3940,245 @@
           console.error("Error en pendientes Bonelles:", e);
         }
 
+        window.updatePendingBadge(pendingLetters, pendingPhotos, pendingBonelles);
+
         // Bonelles: estadísticas por comida (año actual)
         window.loadBonellesYearStats();
       } catch (err) {
         console.error("Error en loadDashboard:", err);
       }
     };
+
+    // ==================== PENDIENTES ICON + PANEL ====================
+    window.getPendingDigestFromDom = function() {
+      const letters = Number(document.getElementById("pendingLetters")?.textContent || 0);
+      const photos = Number(document.getElementById("pendingPhotos")?.textContent || 0);
+      const bonelles = Number(document.getElementById("pendingBonelles")?.textContent || 0);
+      return `${letters}|${photos}|${bonelles}`;
+    };
+
+    window.getPendingSeenKey = function() {
+      const u = String(currentUser || "").toLowerCase() || "anon";
+      return `ce_pendingSeenDigest_${u}`;
+    };
+
+    window.updatePendingBadge = function(pendingLetters, pendingPhotos, pendingBonelles) {
+      try {
+        const btn = document.getElementById("pendingIconBtn");
+        const badge = document.getElementById("pendingTotalBadge");
+        const iconImg = document.getElementById("pendingIconImg");
+        if (!btn || !badge) return;
+
+        const total = Math.max(0, Number(pendingLetters) || 0) + Math.max(0, Number(pendingPhotos) || 0) + Math.max(0, Number(pendingBonelles) || 0);
+        badge.textContent = String(total);
+
+        const active = total > 0;
+        badge.style.display = active ? "inline-flex" : "none";
+        btn.classList.toggle("has-pending", active);
+
+        if (iconImg) iconImg.src = active ? "activa.png" : "inactiva.png";
+      } catch (err) {
+        console.error("Error en updatePendingBadge:", err);
+      }
+    };
+
+    window.markPendingsAsSeen = function() {
+      try {
+        const digest = window.getPendingDigestFromDom();
+        localStorage.setItem(window.getPendingSeenKey(), digest);
+
+        const parts = digest.split("|").map(n => Number(n) || 0);
+        window.updatePendingBadge(parts[0], parts[1], parts[2]);
+      } catch (err) {
+        console.error("Error en markPendingsAsSeen:", err);
+      }
+    };
+
+    window.togglePendingPanel = function(force) {
+      try {
+        const panel = document.getElementById("pendingPanel");
+        const btn = document.getElementById("pendingIconBtn");
+        if (!panel || !btn) return;
+
+        const openNow = panel.classList.contains("active");
+        const next = typeof force === "boolean" ? force : !openNow;
+
+        panel.classList.toggle("active", next);
+        panel.setAttribute("aria-hidden", next ? "false" : "true");
+        btn.setAttribute("aria-expanded", next ? "true" : "false");
+
+        if (next) {
+          // "Revisar" = abrir la mini-pestaña
+          window.markPendingsAsSeen();
+        }
+      } catch (err) {
+        console.error("Error en togglePendingPanel:", err);
+      }
+    };
+
+    // Sonido "miau" al presionar el icono
+    window.playKittenMeow = function() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+
+        if (!window.__meowCtx) window.__meowCtx = new AudioCtx();
+        const ctx = window.__meowCtx;
+
+        // Si el contexto está suspendido (móvil), reanudar con gesto del usuario
+        if (ctx.state === "suspended") {
+          ctx.resume().catch(() => {});
+        }
+
+        const now = ctx.currentTime;
+        const duration = 0.62;
+
+        // Cadena: fuentes -> formantes -> compresor -> salida
+        const out = ctx.createGain();
+        out.gain.setValueAtTime(0.0001, now);
+        out.gain.exponentialRampToValueAtTime(0.28, now + 0.03);
+        out.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        const compressor = ctx.createDynamicsCompressor();
+        compressor.threshold.setValueAtTime(-22, now);
+        compressor.knee.setValueAtTime(18, now);
+        compressor.ratio.setValueAtTime(6, now);
+        compressor.attack.setValueAtTime(0.008, now);
+        compressor.release.setValueAtTime(0.14, now);
+
+        // "Voz" principal: mezcla de triángulo + diente
+        const osc1 = ctx.createOscillator();
+        osc1.type = "triangle";
+        const osc2 = ctx.createOscillator();
+        osc2.type = "sawtooth";
+
+        const v1 = ctx.createGain();
+        v1.gain.setValueAtTime(0.65, now);
+        const v2 = ctx.createGain();
+        v2.gain.setValueAtTime(0.25, now);
+
+        // Contorno de tono más "miau" (ataque corto + caída larga)
+        // Arranca alto, baja un poco rápido, y cae hacia el final.
+        const fStart = 820;
+        const fMid = 620;
+        const fEnd = 240;
+        osc1.frequency.setValueAtTime(fStart, now);
+        osc2.frequency.setValueAtTime(fStart * 1.01, now);
+        osc1.frequency.exponentialRampToValueAtTime(fMid, now + 0.12);
+        osc2.frequency.exponentialRampToValueAtTime(fMid * 1.01, now + 0.12);
+        osc1.frequency.exponentialRampToValueAtTime(fEnd, now + duration);
+        osc2.frequency.exponentialRampToValueAtTime(fEnd * 1.01, now + duration);
+
+        // Vibrato irregular leve (más natural)
+        const lfo = ctx.createOscillator();
+        lfo.type = "sine";
+        lfo.frequency.setValueAtTime(7.5, now);
+        const lfoGain = ctx.createGain();
+        lfoGain.gain.setValueAtTime(14, now);
+        lfo.connect(lfoGain);
+        lfoGain.connect(osc1.frequency);
+        lfoGain.connect(osc2.frequency);
+
+        // Formantes (bandpass) para dar "boca" al sonido
+        const form1 = ctx.createBiquadFilter();
+        form1.type = "bandpass";
+        form1.Q.setValueAtTime(7.5, now);
+        form1.frequency.setValueAtTime(980, now);
+        form1.frequency.exponentialRampToValueAtTime(720, now + duration);
+
+        const form2 = ctx.createBiquadFilter();
+        form2.type = "bandpass";
+        form2.Q.setValueAtTime(9.0, now);
+        form2.frequency.setValueAtTime(1650, now);
+        form2.frequency.exponentialRampToValueAtTime(1350, now + duration);
+
+        const tilt = ctx.createBiquadFilter();
+        tilt.type = "lowpass";
+        tilt.frequency.setValueAtTime(2400, now);
+        tilt.frequency.exponentialRampToValueAtTime(1600, now + duration);
+
+        // Un poquito de aire/ruido con filtro, para el "ma" inicial
+        const noiseBuffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * duration), ctx.sampleRate);
+        const data = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < data.length; i++) {
+          // ruido suavizado
+          data[i] = (Math.random() * 2 - 1) * 0.25;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = noiseBuffer;
+
+        const noiseHP = ctx.createBiquadFilter();
+        noiseHP.type = "highpass";
+        noiseHP.frequency.setValueAtTime(500, now);
+
+        const noiseBP = ctx.createBiquadFilter();
+        noiseBP.type = "bandpass";
+        noiseBP.frequency.setValueAtTime(1400, now);
+        noiseBP.Q.setValueAtTime(1.1, now);
+
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.0001, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+
+        // Conexiones
+        osc1.connect(v1);
+        osc2.connect(v2);
+
+        const voiceMix = ctx.createGain();
+        voiceMix.gain.setValueAtTime(1, now);
+        v1.connect(voiceMix);
+        v2.connect(voiceMix);
+
+        voiceMix.connect(form1);
+        form1.connect(form2);
+        form2.connect(tilt);
+        tilt.connect(compressor);
+        compressor.connect(out);
+        out.connect(ctx.destination);
+
+        noise.connect(noiseHP);
+        noiseHP.connect(noiseBP);
+        noiseBP.connect(noiseGain);
+        noiseGain.connect(compressor);
+
+        osc1.start(now);
+        osc2.start(now);
+        lfo.start(now);
+        noise.start(now);
+
+        osc1.stop(now + duration);
+        osc2.stop(now + duration);
+        lfo.stop(now + duration);
+        noise.stop(now + duration);
+      } catch (err) {
+        console.error("Error en playKittenMeow:", err);
+      }
+    };
+
+    window.onPendingIconClick = function(e) {
+      try {
+        window.playKittenMeow();
+      } catch (_) {}
+      window.togglePendingPanel();
+    };
+
+    document.addEventListener("click", (e) => {
+      const panel = document.getElementById("pendingPanel");
+      const btn = document.getElementById("pendingIconBtn");
+      if (!panel || !btn) return;
+      if (!panel.classList.contains("active")) return;
+      const t = e.target;
+      if (panel.contains(t) || btn.contains(t)) return;
+      window.togglePendingPanel(false);
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return;
+      const panel = document.getElementById("pendingPanel");
+      if (!panel || !panel.classList.contains("active")) return;
+      window.togglePendingPanel(false);
+    });
 
     window.loadBonellesYearStats = async function() {
       try {
