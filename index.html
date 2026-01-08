@@ -70,7 +70,7 @@
       /* Pendientes (icono fijo) */
       --pending-btn-size: 132px;
       --pending-img-size: 112px;
-      --pending-offset: 14px;
+      --pending-offset: 8px;
     }
 
     /* DIEGO THEME */
@@ -281,6 +281,7 @@
       margin-bottom: 24px;
       min-height: 260px;
       isolation: isolate;
+      cursor: zoom-in;
     }
 
     .cover-hero img {
@@ -399,6 +400,106 @@
       .cover-hero img { animation: none; transform: none; }
       .cover-hero::after { animation: none; }
       .cover-hero:hover img { transform: none; }
+    }
+
+    /* ==================== COVER LIGHTBOX ==================== */
+    .cover-lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 12000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.22s ease, visibility 0.22s ease;
+      padding: calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
+    }
+
+    .cover-lightbox.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .cover-lightbox-inner {
+      width: min(1100px, 100%);
+      max-height: 100%;
+      position: relative;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-xl);
+    }
+
+    .cover-lightbox-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(0, 0, 0, 0.22);
+      color: white;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-fast);
+      z-index: 1;
+    }
+
+    .cover-lightbox-close:hover {
+      background: rgba(0, 0, 0, 0.32);
+      transform: translateY(-1px);
+    }
+
+    .cover-lightbox-stage {
+      width: 100%;
+      max-height: calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .cover-lightbox-stage img {
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+      max-height: calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+      object-fit: contain;
+      display: block;
+      cursor: zoom-in;
+      user-select: none;
+      -webkit-user-drag: none;
+      transform-origin: center;
+      transition: transform 0.18s ease;
+    }
+
+    .cover-lightbox-stage.is-zoomed {
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .cover-lightbox-stage.is-zoomed img {
+      cursor: zoom-out;
+      max-width: none;
+      max-height: none;
+      width: auto;
+      height: auto;
+      transform: scale(1.8);
+      margin: 60px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cover-lightbox,
+      .cover-lightbox-stage img {
+        transition: none;
+      }
     }
 
     /* ==================== HEADER ==================== */
@@ -562,6 +663,14 @@
       filter: drop-shadow(0 10px 15px -3px rgba(0, 0, 0, 0.2));
       animation: pendingFloat 3.2s ease-in-out infinite;
       transform: translateZ(0);
+      touch-action: none;
+      cursor: grab;
+    }
+
+    #pendingIconBtn.is-dragging {
+      cursor: grabbing;
+      animation: none;
+      opacity: 0.95;
     }
 
     @keyframes pendingFloat {
@@ -743,7 +852,7 @@
       :root {
         --pending-btn-size: 260px;
         --pending-img-size: 225px;
-        --pending-offset: 10px;
+        --pending-offset: 4px;
       }
 
       .pending-panel {
@@ -758,7 +867,7 @@
       :root {
         --pending-btn-size: 230px;
         --pending-img-size: 200px;
-        --pending-offset: 8px;
+        --pending-offset: 2px;
       }
     }
 
@@ -3150,7 +3259,7 @@
     <div class="login-container">
       <div class="login-icon"><i class="fas fa-envelope"></i></div>
       <h1 class="login-title">Diego Y Danna</h1>
-      <p class="login-subtitle">Conecta tu corazón a través de palabras</p>
+      <p class="login-subtitle">Juntos X Siempre</p>
       <div class="login-buttons">
         <button class="login-btn diego" id="btnDiego" onclick="window.initApp('diego')">
           <span class="login-avatar" aria-hidden="true">
@@ -3222,6 +3331,18 @@
         </div>
 
         <div class="pending-note"><i class="fas fa-heart"></i> Se actualiza al abrir una carta o la galería.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox de portada -->
+  <div class="cover-lightbox" id="coverLightbox" aria-hidden="true">
+    <div class="cover-lightbox-inner" role="dialog" aria-modal="true" aria-label="Portada">
+      <button class="cover-lightbox-close" type="button" onclick="window.closeCoverLightbox()" aria-label="Cerrar portada" title="Cerrar">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="cover-lightbox-stage" id="coverLightboxStage">
+        <img id="coverLightboxImg" src="" alt="Portada" />
       </div>
     </div>
   </div>
@@ -3729,7 +3850,6 @@
         <div class="card-body">
           <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8;">
             <strong>Diego Y Danna</strong> es una plataforma moderna para guardar y compartir momentos especiales. 
-            Cada carta cuenta una historia única entre dos corazones.
           </p>
           <p style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 16px;">
             <i class="fas fa-code"></i> v2.0.0 • <i class="fas fa-palette"></i> Diseño Premium • <i class="fas fa-music"></i> Notificaciones Push • <i class="fas fa-cloud"></i> Realtime Database<br>
@@ -3882,6 +4002,11 @@
 
         const pendingFloating = document.getElementById("pendingFloating");
         if (pendingFloating) pendingFloating.style.display = "block";
+
+        // Permite mover el icono flotante y restaurar su posición guardada
+        window.enablePendingFloatingDrag?.();
+        window.restorePendingFloatingPosition?.();
+        window.updatePendingFloatingVisibility?.();
         
         const mainContent = document.getElementById("mainContent");
         if (mainContent) mainContent.style.display = "block";
@@ -4124,6 +4249,135 @@
       }
     };
 
+    window.getPendingFloatingPosKey = function() {
+      const u = String(currentUser || "").toLowerCase() || "anon";
+      return `ce_pendingFloatingPos_${u}`;
+    };
+
+    window.restorePendingFloatingPosition = function() {
+      try {
+        const btn = document.getElementById("pendingIconBtn");
+        if (!btn) return;
+
+        const raw = localStorage.getItem(window.getPendingFloatingPosKey());
+        if (!raw) return;
+
+        const pos = JSON.parse(raw);
+        const left = Number(pos?.left);
+        const top = Number(pos?.top);
+        if (!Number.isFinite(left) || !Number.isFinite(top)) return;
+
+        // Aplica como top/left para permitir arrastre libre.
+        btn.style.left = `${left}px`;
+        btn.style.top = `${top}px`;
+        btn.style.right = "auto";
+        btn.style.bottom = "auto";
+      } catch (err) {
+        console.error("Error en restorePendingFloatingPosition:", err);
+      }
+    };
+
+    window.positionPendingPanelNearButton = function() {
+      try {
+        const panel = document.getElementById("pendingPanel");
+        const btn = document.getElementById("pendingIconBtn");
+        if (!panel || !btn) return;
+        if (!panel.classList.contains("active")) return;
+
+        const margin = 12;
+        const gap = 10;
+        const b = btn.getBoundingClientRect();
+        const pr = panel.getBoundingClientRect();
+
+        // Alinea el panel con el borde derecho del botón (más natural en esquina).
+        let left = b.right - pr.width;
+        left = Math.max(margin, Math.min(left, window.innerWidth - pr.width - margin));
+
+        // Preferimos arriba del botón; si no cabe, lo ponemos abajo.
+        let top = b.top - pr.height - gap;
+        if (top < margin) top = b.bottom + gap;
+        top = Math.max(margin, Math.min(top, window.innerHeight - pr.height - margin));
+
+        panel.style.left = `${left}px`;
+        panel.style.top = `${top}px`;
+        panel.style.right = "auto";
+        panel.style.bottom = "auto";
+      } catch (err) {
+        console.error("Error en positionPendingPanelNearButton:", err);
+      }
+    };
+
+    window.updatePendingFloatingVisibility = function() {
+      try {
+        const floating = document.getElementById("pendingFloating");
+        if (!floating) return;
+
+        // Solo visible con sesión
+        if (!currentUser) {
+          floating.style.display = "none";
+          window.togglePendingPanel?.(false);
+          return;
+        }
+
+        const activeTabBtn = document.querySelector('.tabs .tab-btn.active');
+        const tab = String(activeTabBtn?.dataset?.tab || "inicio");
+        const shouldShow = tab === "inicio";
+
+        floating.style.display = shouldShow ? "block" : "none";
+        if (!shouldShow) window.togglePendingPanel?.(false);
+      } catch (err) {
+        console.error("Error en updatePendingFloatingVisibility:", err);
+      }
+    };
+
+    // ==================== PORTADA: ABRIR / AMPLIAR ====================
+    window.openCoverLightbox = function(src, alt) {
+      try {
+        const lightbox = document.getElementById("coverLightbox");
+        const img = document.getElementById("coverLightboxImg");
+        const stage = document.getElementById("coverLightboxStage");
+        if (!lightbox || !img || !stage) return;
+        if (!src) return;
+
+        stage.classList.remove("is-zoomed");
+        img.src = src;
+        img.alt = alt || "Portada";
+
+        lightbox.classList.add("active");
+        lightbox.setAttribute("aria-hidden", "false");
+
+        if (window.__prevBodyOverflow == null) {
+          window.__prevBodyOverflow = document.body.style.overflow;
+        }
+        document.body.style.overflow = "hidden";
+      } catch (err) {
+        console.error("Error en openCoverLightbox:", err);
+      }
+    };
+
+    window.closeCoverLightbox = function() {
+      try {
+        const lightbox = document.getElementById("coverLightbox");
+        const img = document.getElementById("coverLightboxImg");
+        const stage = document.getElementById("coverLightboxStage");
+        if (!lightbox) return;
+
+        lightbox.classList.remove("active");
+        lightbox.setAttribute("aria-hidden", "true");
+        if (stage) stage.classList.remove("is-zoomed");
+        if (img) img.src = "";
+
+        if (window.__prevBodyOverflow != null) {
+          document.body.style.overflow = window.__prevBodyOverflow;
+          window.__prevBodyOverflow = null;
+        } else {
+          document.body.style.overflow = "";
+        }
+      } catch (err) {
+        console.error("Error en closeCoverLightbox:", err);
+      }
+    };
+
     window.togglePendingPanel = function(force) {
       try {
         const panel = document.getElementById("pendingPanel");
@@ -4140,9 +4394,119 @@
         if (next) {
           // "Revisar" = abrir la mini-pestaña
           window.markPendingsAsSeen();
+
+          // Posiciona el panel cerca del botón (en caso de haberlo movido)
+          requestAnimationFrame(() => window.positionPendingPanelNearButton());
         }
       } catch (err) {
         console.error("Error en togglePendingPanel:", err);
+      }
+    };
+
+    window.enablePendingFloatingDrag = function() {
+      try {
+        if (window.__pendingDragEnabled) return;
+        const btn = document.getElementById("pendingIconBtn");
+        if (!btn) return;
+
+        window.__pendingDragEnabled = true;
+        window.__pendingDragJustHappened = false;
+
+        const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+        let pointerId = null;
+        let startX = 0;
+        let startY = 0;
+        let startLeft = 0;
+        let startTop = 0;
+        let dragging = false;
+
+        const getRect = () => btn.getBoundingClientRect();
+
+        const startDrag = (e) => {
+          // Solo clic principal en mouse
+          if (e.pointerType === "mouse" && e.button !== 0) return;
+          pointerId = e.pointerId;
+          btn.setPointerCapture(pointerId);
+
+          const r = getRect();
+          startX = e.clientX;
+          startY = e.clientY;
+          startLeft = r.left;
+          startTop = r.top;
+          dragging = false;
+        };
+
+        const moveDrag = (e) => {
+          if (pointerId == null || e.pointerId !== pointerId) return;
+
+          const dx = e.clientX - startX;
+          const dy = e.clientY - startY;
+          const dist = Math.hypot(dx, dy);
+
+          if (!dragging) {
+            if (dist < 8) return;
+            dragging = true;
+            window.__pendingDragJustHappened = true;
+            btn.classList.add("is-dragging");
+            // Si el panel está abierto, lo cerramos mientras arrastra
+            window.togglePendingPanel(false);
+          }
+
+          const r = getRect();
+          const w = r.width;
+          const h = r.height;
+
+          const maxLeft = window.innerWidth - w - 2;
+          const maxTop = window.innerHeight - h - 2;
+
+          const nextLeft = clamp(startLeft + dx, 2, maxLeft);
+          const nextTop = clamp(startTop + dy, 2, maxTop);
+
+          btn.style.left = `${nextLeft}px`;
+          btn.style.top = `${nextTop}px`;
+          btn.style.right = "auto";
+          btn.style.bottom = "auto";
+        };
+
+        const endDrag = (e) => {
+          if (pointerId == null || e.pointerId !== pointerId) return;
+          try {
+            btn.releasePointerCapture(pointerId);
+          } catch (_) {}
+
+          if (dragging) {
+            const r = getRect();
+            try {
+              localStorage.setItem(window.getPendingFloatingPosKey(), JSON.stringify({ left: r.left, top: r.top }));
+            } catch (_) {}
+
+            setTimeout(() => {
+              window.__pendingDragJustHappened = false;
+            }, 250);
+          } else {
+            // No fue drag: permite el click normal
+            setTimeout(() => {
+              window.__pendingDragJustHappened = false;
+            }, 0);
+          }
+
+          dragging = false;
+          pointerId = null;
+          btn.classList.remove("is-dragging");
+        };
+
+        btn.addEventListener("pointerdown", startDrag);
+        btn.addEventListener("pointermove", moveDrag);
+        btn.addEventListener("pointerup", endDrag);
+        btn.addEventListener("pointercancel", endDrag);
+
+        window.addEventListener("resize", () => {
+          // Si está abierto, re-posiciona el panel.
+          window.positionPendingPanelNearButton();
+        });
+      } catch (err) {
+        console.error("Error en enablePendingFloatingDrag:", err);
       }
     };
 
@@ -4287,6 +4651,8 @@
     };
 
     window.onPendingIconClick = function(e) {
+      // Si el usuario acaba de arrastrar, ignorar el click.
+      if (window.__pendingDragJustHappened) return;
       try {
         window.playKittenMeow();
       } catch (_) {}
@@ -5587,6 +5953,54 @@
           }
         });
 
+        // Portada: abrir en pantalla completa
+        try {
+          const cover = document.getElementById("inicioCover");
+          const coverImg = cover?.querySelector?.("img");
+          if (cover && coverImg) {
+            cover.tabIndex = 0;
+            cover.setAttribute("role", "button");
+            cover.setAttribute("aria-label", "Ampliar portada");
+
+            const open = () => window.openCoverLightbox(coverImg.getAttribute("src"), coverImg.getAttribute("alt") || "Portada");
+            cover.addEventListener("click", (e) => {
+              // Evitar que clicks sobre elementos interactivos dentro (si se agregan en el futuro) disparen dos veces
+              if (e.defaultPrevented) return;
+              open();
+            });
+            cover.addEventListener("keydown", (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                open();
+              }
+            });
+          }
+
+          const lightbox = document.getElementById("coverLightbox");
+          const img = document.getElementById("coverLightboxImg");
+          const stage = document.getElementById("coverLightboxStage");
+          if (lightbox && img && stage) {
+            // Cerrar al tocar fuera
+            lightbox.addEventListener("click", (e) => {
+              if (e.target === lightbox) window.closeCoverLightbox();
+            });
+            // Toggle zoom al tocar la imagen
+            img.addEventListener("click", (e) => {
+              e.stopPropagation();
+              stage.classList.toggle("is-zoomed");
+            });
+          }
+
+          // ESC para cerrar
+          document.addEventListener("keydown", (e) => {
+            if (e.key !== "Escape") return;
+            const lb = document.getElementById("coverLightbox");
+            if (lb && lb.classList.contains("active")) window.closeCoverLightbox();
+          });
+        } catch (e) {
+          console.error("Error configurando portada:", e);
+        }
+
         const tabButtons = document.querySelectorAll(".tabs .tab-btn");
         tabButtons.forEach(btn => {
           btn.addEventListener("click", function() {
@@ -5610,6 +6024,11 @@
             } catch (e) {
               console.error("Error actualizando pendientes:", e);
             }
+
+            // Mostrar el botón flotante solo en Inicio
+            try {
+              window.updatePendingFloatingVisibility?.();
+            } catch (_) {}
           });
         });
 
@@ -5626,6 +6045,11 @@
             firstContent.classList.add("active");
           }
         }
+
+        // Estado inicial del botón flotante (solo Inicio)
+        try {
+          window.updatePendingFloatingVisibility?.();
+        } catch (_) {}
 
         // Inicializar búsqueda de canciones
         console.log("Inicializando entrada de URL de YouTube...");
@@ -6711,6 +7135,9 @@
     window.addEventListener("DOMContentLoaded", () => {
       try {
         console.log("DOMContentLoaded iniciando...");
+
+        // Configura drag del botón (aunque esté oculto antes del login)
+        window.enablePendingFloatingDrag?.();
         
         // Asegurar que el primer tab esté visible
         const firstContent = document.getElementById("tab-inicio");
