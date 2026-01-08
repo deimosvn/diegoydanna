@@ -1,0 +1,23 @@
+{
+  "name": "Diego Y Danna",
+  "short_name": "DiegoYDanna",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1220",
+  "theme_color": "#0f1220",
+  "description": "Diego Y Danna — cartas, fotos y momentos especiales.",
+  "icons": [
+    {
+      "src": "/portada.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/portada.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
