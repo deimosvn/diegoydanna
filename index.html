@@ -4419,13 +4419,38 @@
         let startY = 0;
         let startLeft = 0;
         let startTop = 0;
+        let btnW = 0;
+        let btnH = 0;
         let dragging = false;
 
+        // Base (sin transform) desde donde se aplica translate3d mientras se arrastra
+        let baseLeft = 0;
+        let baseTop = 0;
+
+        // RAF throttle: evita jank en móvil al no escribir estilos en cada pointermove
+        let rafId = 0;
+        let targetLeft = 0;
+        let targetTop = 0;
+
         const getRect = () => btn.getBoundingClientRect();
+
+        const applyPosition = () => {
+          rafId = 0;
+          // Durante el arrastre, solo movemos con transform (más fluido en móvil)
+          const dx = targetLeft - baseLeft;
+          const dy = targetTop - baseTop;
+          btn.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+        };
+
+        const scheduleApply = () => {
+          if (rafId) return;
+          rafId = requestAnimationFrame(applyPosition);
+        };
 
         const startDrag = (e) => {
           // Solo clic principal en mouse
           if (e.pointerType === "mouse" && e.button !== 0) return;
+          try { e.preventDefault(); } catch (_) {}
           pointerId = e.pointerId;
           btn.setPointerCapture(pointerId);
 
@@ -4434,11 +4459,26 @@
           startY = e.clientY;
           startLeft = r.left;
           startTop = r.top;
+          btnW = r.width;
+          btnH = r.height;
+          targetLeft = startLeft;
+          targetTop = startTop;
+
+          // Fijar base (left/top) para que el transform sea relativo a ella
+          baseLeft = startLeft;
+          baseTop = startTop;
+          btn.style.left = `${baseLeft}px`;
+          btn.style.top = `${baseTop}px`;
+          btn.style.right = "auto";
+          btn.style.bottom = "auto";
+          btn.style.transform = "translate3d(0px, 0px, 0)";
+
           dragging = false;
         };
 
         const moveDrag = (e) => {
           if (pointerId == null || e.pointerId !== pointerId) return;
+          try { e.preventDefault(); } catch (_) {}
 
           const dx = e.clientX - startX;
           const dy = e.clientY - startY;
@@ -4451,22 +4491,18 @@
             btn.classList.add("is-dragging");
             // Si el panel está abierto, lo cerramos mientras arrastra
             window.togglePendingPanel(false);
+
+            // Evita que transiciones ralenticen el movimiento
+            btn.style.transition = "none";
           }
 
-          const r = getRect();
-          const w = r.width;
-          const h = r.height;
+          // Libre por toda la pantalla: permitir bordes 0..max
+          const maxLeft = Math.max(0, window.innerWidth - btnW);
+          const maxTop = Math.max(0, window.innerHeight - btnH);
 
-          const maxLeft = window.innerWidth - w - 2;
-          const maxTop = window.innerHeight - h - 2;
-
-          const nextLeft = clamp(startLeft + dx, 2, maxLeft);
-          const nextTop = clamp(startTop + dy, 2, maxTop);
-
-          btn.style.left = `${nextLeft}px`;
-          btn.style.top = `${nextTop}px`;
-          btn.style.right = "auto";
-          btn.style.bottom = "auto";
+          targetLeft = clamp(startLeft + dx, 0, maxLeft);
+          targetTop = clamp(startTop + dy, 0, maxTop);
+          scheduleApply();
         };
 
         const endDrag = (e) => {
@@ -4476,6 +4512,16 @@
           } catch (_) {}
 
           if (dragging) {
+            if (rafId) {
+              cancelAnimationFrame(rafId);
+              applyPosition();
+            }
+
+            // Commit final: convierte el transform en left/top y limpia transform
+            btn.style.left = `${targetLeft}px`;
+            btn.style.top = `${targetTop}px`;
+            btn.style.transform = "";
+
             const r = getRect();
             try {
               localStorage.setItem(window.getPendingFloatingPosKey(), JSON.stringify({ left: r.left, top: r.top }));
@@ -4494,12 +4540,16 @@
           dragging = false;
           pointerId = null;
           btn.classList.remove("is-dragging");
+
+          // Restaura transición
+          btn.style.transition = "";
         };
 
-        btn.addEventListener("pointerdown", startDrag);
-        btn.addEventListener("pointermove", moveDrag);
-        btn.addEventListener("pointerup", endDrag);
-        btn.addEventListener("pointercancel", endDrag);
+        // Listeners no-passive para que preventDefault funcione bien en móvil
+        btn.addEventListener("pointerdown", startDrag, { passive: false });
+        btn.addEventListener("pointermove", moveDrag, { passive: false });
+        btn.addEventListener("pointerup", endDrag, { passive: true });
+        btn.addEventListener("pointercancel", endDrag, { passive: true });
 
         window.addEventListener("resize", () => {
           // Si está abierto, re-posiciona el panel.
