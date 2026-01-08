@@ -408,8 +408,43 @@
       z-index: 100;
       background: var(--bg-white);
       border-bottom: 1px solid var(--text-light);
-      padding: calc(14px + env(safe-area-inset-top)) 0 14px;
+      padding: calc(12px + env(safe-area-inset-top)) 0 12px;
       box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      isolation: isolate;
+    }
+
+    header::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      pointer-events: none;
+      opacity: 0;
+      background: linear-gradient(90deg, transparent, rgba(0,0,0,0.0), transparent);
+    }
+
+    body.theme-diego header::after {
+      opacity: 0.55;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--diego-primary) 55%, transparent),
+        transparent
+      );
+    }
+
+    body.theme-danna header::after {
+      opacity: 0.55;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--danna-primary) 55%, transparent),
+        transparent
+      );
     }
 
     .header-content {
@@ -428,34 +463,77 @@
       gap: 16px;
     }
 
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
     .brand-icon {
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
       border-radius: var(--radius-md);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 1.4rem;
       color: white;
+      box-shadow: var(--shadow-md);
+    }
+
+    @media (max-width: 520px) {
+      .brand { gap: 12px; }
+      .brand-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+      }
     }
 
     .brand-text h1 {
-      font-size: 1.3rem;
-      font-weight: 700;
+      font-size: 1.25rem;
+      font-weight: 800;
       color: var(--text-primary);
       font-family: "Playfair Display", serif;
+      letter-spacing: -0.01em;
+      line-height: 1.1;
     }
 
     .brand-text p {
       font-size: 0.75rem;
       color: var(--text-secondary);
       margin-top: 2px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      width: fit-content;
+      max-width: 100%;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--text-light);
+      background: color-mix(in srgb, var(--bg-light) 72%, var(--bg-white));
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    body.theme-diego .brand-text p {
+      border-color: color-mix(in srgb, var(--diego-primary) 28%, var(--text-light));
+      background: color-mix(in srgb, var(--diego-primary) 10%, var(--bg-light));
+    }
+
+    body.theme-danna .brand-text p {
+      border-color: color-mix(in srgb, var(--danna-primary) 28%, var(--text-light));
+      background: color-mix(in srgb, var(--danna-primary) 10%, var(--bg-light));
     }
 
     .header-actions {
       display: flex;
       gap: 12px;
       align-items: center;
+      flex: 0 0 auto;
     }
 
     /* ==================== PENDINGS ICON + MINI PANEL ==================== */
@@ -662,8 +740,8 @@
 
     @media (max-width: 520px) {
       :root {
-        --pending-btn-size: 150px;
-        --pending-img-size: 125px;
+        --pending-btn-size: 230px;
+        --pending-img-size: 200px;
         --pending-offset: 14px;
       }
 
@@ -706,29 +784,54 @@
     }
 
     .user-badge {
-      padding: 8px 16px;
-      background: var(--bg-light);
-      border-radius: var(--radius-md);
+      padding: 9px 14px;
+      background: color-mix(in srgb, var(--bg-light) 72%, var(--bg-white));
+      border: 1px solid var(--text-light);
+      border-radius: 999px;
       color: var(--text-secondary);
       font-size: 0.85rem;
-      font-weight: 500;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1;
     }
 
+    .user-badge:empty { display: none; }
+
     .logout-btn {
-      padding: 8px 16px;
-      background: transparent;
+      padding: 9px 14px;
+      background: var(--bg-white);
       border: 1px solid var(--text-light);
-      border-radius: var(--radius-md);
+      border-radius: 999px;
       color: var(--text-primary);
       cursor: pointer;
       transition: var(--transition-fast);
-      font-weight: 500;
+      font-weight: 800;
       font-size: 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1;
+    }
+
+    .logout-btn:active {
+      transform: translateY(1px);
     }
 
     .logout-btn:hover {
       background: var(--bg-light);
       border-color: var(--text-secondary);
+    }
+
+    body.theme-diego .logout-btn:hover {
+      background: color-mix(in srgb, var(--diego-primary) 10%, var(--bg-light));
+      border-color: color-mix(in srgb, var(--diego-primary) 40%, var(--text-light));
+    }
+
+    body.theme-danna .logout-btn:hover {
+      background: color-mix(in srgb, var(--danna-primary) 10%, var(--bg-light));
+      border-color: color-mix(in srgb, var(--danna-primary) 40%, var(--text-light));
     }
 
     /* ==================== MAIN CONTENT ==================== */
@@ -742,44 +845,74 @@
       display: flex;
       gap: 8px;
       margin-bottom: 32px;
-      border-bottom: 2px solid var(--text-light);
-      padding-bottom: 0;
+      border: 1px solid var(--text-light);
+      background: var(--bg-white);
+      padding: 8px;
+      border-radius: 999px;
+      box-shadow: var(--shadow-sm);
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x proximity;
+      scroll-padding-left: 8px;
+      scroll-padding-right: 8px;
     }
 
     .tabs::-webkit-scrollbar { height: 0; }
 
     .tab-btn {
-      padding: 14px 24px;
+      padding: 11px 16px;
       background: transparent;
-      border: none;
+      border: 1px solid transparent;
+      border-radius: 999px;
       color: var(--text-secondary);
       cursor: pointer;
       font-size: 0.95rem;
-      font-weight: 500;
+      font-weight: 800;
       position: relative;
       transition: var(--transition-fast);
       white-space: nowrap;
-      border-bottom: 3px solid transparent;
-      transform: translateY(2px);
       display: flex;
       align-items: center;
       gap: 8px;
+      line-height: 1;
+      scroll-snap-align: start;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tab-btn i {
+      opacity: 0.85;
+    }
+
+    .tab-btn.active i {
+      opacity: 1;
     }
 
     body.theme-diego .tab-btn.active {
       color: var(--diego-primary);
-      border-bottom-color: var(--diego-primary);
+      background: color-mix(in srgb, var(--diego-primary) 10%, var(--bg-light));
+      border-color: color-mix(in srgb, var(--diego-primary) 38%, var(--text-light));
     }
 
     body.theme-danna .tab-btn.active {
       color: var(--danna-primary);
-      border-bottom-color: var(--danna-primary);
+      background: color-mix(in srgb, var(--danna-primary) 10%, var(--bg-light));
+      border-color: color-mix(in srgb, var(--danna-primary) 38%, var(--text-light));
     }
 
     .tab-btn:hover {
       color: var(--text-primary);
+      background: color-mix(in srgb, var(--bg-light) 80%, var(--bg-white));
+    }
+
+    .tab-btn:focus-visible {
+      outline: none;
+      box-shadow: var(--shadow-md);
+      border-color: var(--text-secondary);
+    }
+
+    @media (max-width: 520px) {
+      .tabs { padding: 6px; margin-bottom: 22px; }
+      .tab-btn { padding: 10px 12px; font-size: 0.88rem; }
     }
 
     .tab-content {
@@ -2292,7 +2425,7 @@
         align-items: stretch;
         gap: 10px;
       }
-      .brand { justify-content: space-between; }
+      .brand { justify-content: flex-start; }
       .header-actions { width: 100%; justify-content: space-between; }
 
       main {
@@ -2302,10 +2435,10 @@
       .login-container { padding: 42px 18px; }
 
       .login-buttons { grid-template-columns: 1fr; }
-      .tabs { gap: 8px; }
-      .tab-btn { padding: 12px 16px; font-size: 0.85rem; }
+      .tabs { gap: 6px; padding: 6px; }
+      .tab-btn { padding: 10px 12px; font-size: 0.86rem; }
       .header-actions { gap: 8px; }
-      .user-badge, .logout-btn { font-size: 0.75rem; padding: 6px 12px; }
+      .user-badge, .logout-btn { font-size: 0.76rem; padding: 8px 12px; }
 
       .card-header { padding: 16px; }
       .card-body { padding: 14px; }
@@ -2961,21 +3094,8 @@
       position: relative;
     }
 
-    .tab-btn::after {
-      content: "";
-      position: absolute;
-      left: 12px;
-      right: 12px;
-      bottom: 6px;
-      height: 2px;
-      border-radius: 999px;
-      background: transparent;
-      transition: var(--transition-fast);
-      opacity: 0;
-    }
-
-    body.theme-diego .tab-btn.active::after { background: var(--diego-primary); opacity: 1; }
-    body.theme-danna .tab-btn.active::after { background: var(--danna-primary); opacity: 1; }
+    /* El indicador “subrayado” anterior se reemplaza por el chip activo (background/borde) */
+    .tab-btn::after { display: none; }
 
     input, textarea {
       transition: var(--transition-fast);
@@ -3045,6 +3165,7 @@
   <header id="mainHeader" style="display: none">
     <div class="header-content">
       <div class="brand">
+        <div class="brand-icon primary-gradient" aria-hidden="true"><i class="fas fa-heart"></i></div>
         <div class="brand-text">
           <h1>Diego Y Danna</h1>
           <p id="brandSubtitle">Diego Y Danna</p>
