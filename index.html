@@ -70,7 +70,7 @@
       /* Pendientes (icono fijo) */
       --pending-btn-size: 132px;
       --pending-img-size: 112px;
-      --pending-offset: 8px;
+      --pending-offset: 0px;
     }
 
     /* DIEGO THEME */
@@ -413,6 +413,7 @@
       z-index: 12000;
       opacity: 0;
       visibility: hidden;
+      pointer-events: none;
       transition: opacity 0.22s ease, visibility 0.22s ease;
       padding: calc(14px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left));
     }
@@ -420,6 +421,7 @@
     .cover-lightbox.active {
       opacity: 1;
       visibility: visible;
+      pointer-events: auto;
     }
 
     .cover-lightbox-inner {
@@ -661,7 +663,6 @@
       bottom: calc(var(--pending-offset) + env(safe-area-inset-bottom));
       z-index: 10050;
       filter: drop-shadow(0 10px 15px -3px rgba(0, 0, 0, 0.2));
-      animation: pendingFloat 3.2s ease-in-out infinite;
       transform: translateZ(0);
       touch-action: none;
       cursor: grab;
@@ -673,11 +674,6 @@
       opacity: 0.95;
     }
 
-    @keyframes pendingFloat {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
-    }
-
     /* Siempre visible: el header es sticky, no hace falta fixed */
 
     .pending-icon-btn img {
@@ -687,6 +683,9 @@
       display: block;
       pointer-events: none;
       user-select: none;
+      /* “Acostado” en la esquina inferior, sin estorbar */
+      transform: rotate(-10deg);
+      transform-origin: 100% 100%;
     }
 
     /* Nota: el tamaño real del botón/imagen se controla por variables (--pending-*) */
@@ -707,7 +706,15 @@
     }
 
     .pending-icon-btn.has-pending {
-      animation: pendingFloat 3.2s ease-in-out infinite, pendingPulse 1.6s ease-in-out infinite;
+      animation: pendingPulse 1.6s ease-in-out infinite;
+    }
+
+    /* En móvil: más pequeño y pegado a la base (esquina) */
+    @media (max-width: 480px) {
+      :root {
+        --pending-btn-size: 88px;
+        --pending-img-size: 72px;
+      }
     }
 
     @keyframes pendingPulse {
@@ -749,6 +756,7 @@
       overflow: hidden;
       opacity: 0;
       visibility: hidden;
+      pointer-events: none;
       transform: translateY(-8px);
       transition: var(--transition);
       z-index: 10060;
@@ -757,7 +765,47 @@
     .pending-panel.active {
       opacity: 1;
       visibility: visible;
+      pointer-events: auto;
       transform: translateY(0);
+    }
+
+    /* ==================== PENDIENTES EN INICIO (INLINE) ==================== */
+    .pending-section {
+      --pending-btn-size: 96px;
+      --pending-img-size: 78px;
+    }
+
+    .pending-section #pendingIconBtn {
+      position: static;
+      right: auto;
+      bottom: auto;
+      left: auto;
+      top: auto;
+      z-index: auto;
+      filter: none;
+      transform: none;
+      touch-action: manipulation;
+      cursor: pointer;
+    }
+
+    .pending-section .pending-panel {
+      position: static;
+      left: auto;
+      top: auto;
+      right: auto;
+      bottom: auto;
+      width: 100%;
+      margin-top: 12px;
+      transform: none;
+      display: none;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      z-index: auto;
+    }
+
+    .pending-section .pending-panel.active {
+      display: block;
     }
 
     .pending-panel-header {
@@ -1714,11 +1762,12 @@
       appearance: none;
       border: 0;
       background: transparent;
-      padding: 0;
+      padding: 8px;
       cursor: pointer;
       color: var(--text-tertiary);
       font-size: 1.2rem;
       transition: var(--transition-fast);
+      touch-action: manipulation;
     }
 
     body.theme-diego .star-btn.is-on { color: var(--diego-primary); }
@@ -1793,6 +1842,8 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
     .bon-delete-btn {
@@ -1865,11 +1916,14 @@
     .bon-rating .stars button {
       border: 0;
       background: transparent;
-      padding: 0;
+      padding: 8px;
       cursor: pointer;
       font-size: 1.1rem;
       color: var(--text-tertiary);
       transition: var(--transition-fast);
+      min-width: 36px;
+      min-height: 36px;
+      touch-action: manipulation;
     }
 
     body.theme-diego .bon-rating .stars button.is-on { color: var(--diego-primary); }
@@ -2592,6 +2646,7 @@
       z-index: 8000;
       opacity: 0;
       visibility: hidden;
+      pointer-events: none;
       transition: all 0.3s ease;
       padding: 20px;
     }
@@ -2599,6 +2654,7 @@
     .letter-modal.active {
       opacity: 1;
       visibility: visible;
+      pointer-events: auto;
     }
 
     .modal-content {
@@ -3296,45 +3352,6 @@
     </div>
   </header>
 
-  <!-- Burbuja flotante de pendientes (solo cuando hay sesión) -->
-  <div id="pendingFloating" style="display:none;">
-    <button class="pending-icon-btn" id="pendingIconBtn" type="button" onclick="window.onPendingIconClick(event)" title="Pendientes" aria-label="Pendientes" aria-haspopup="dialog" aria-expanded="false">
-      <img id="pendingIconImg" src="inactiva.png" alt="Pendientes" />
-      <span class="pending-badge" id="pendingTotalBadge" style="display:none;">0</span>
-    </button>
-
-    <div class="pending-panel" id="pendingPanel" aria-hidden="true">
-      <div class="pending-panel-header">
-        <div class="pending-panel-title"><i class="fas fa-bell"></i> Pendientes</div>
-        <button class="pending-panel-close" type="button" onclick="window.togglePendingPanel(false)" aria-label="Cerrar pendientes" title="Cerrar">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-      <div class="pending-panel-body">
-        <div class="pending-row">
-          <div class="pending-row-left"><i class="fas fa-envelope-open-text"></i> <span>Cartas sin leer</span></div>
-          <div class="pending-row-count"><span id="pendingLetters">0</span></div>
-        </div>
-        <div class="pending-row">
-          <div class="pending-row-left"><i class="fas fa-camera-retro"></i> <span>Fotos nuevas</span></div>
-          <div class="pending-row-count"><span id="pendingPhotos">0</span></div>
-        </div>
-        <div class="pending-row">
-          <div class="pending-row-left"><i class="fas fa-star"></i> <span>Bonelles por calificar</span></div>
-          <div class="pending-row-count"><span id="pendingBonelles">0</span></div>
-        </div>
-
-        <div class="pending-actions">
-          <button class="btn btn-secondary btn-small" type="button" onclick="window.goToTab('cartas'); window.togglePendingPanel(false)"><i class="fas fa-feather-alt"></i> Cartas</button>
-          <button class="btn btn-secondary btn-small" type="button" onclick="window.goToTab('galeria'); window.togglePendingPanel(false)"><i class="fas fa-images"></i> Galería</button>
-          <button class="btn btn-secondary btn-small" type="button" onclick="window.goToTab('bonelles'); window.togglePendingPanel(false)"><i class="fas fa-utensils"></i> Bonelles</button>
-        </div>
-
-        <div class="pending-note"><i class="fas fa-heart"></i> Se actualiza al abrir una carta o la galería.</div>
-      </div>
-    </div>
-  </div>
-
   <!-- Lightbox de portada -->
   <div class="cover-lightbox" id="coverLightbox" aria-hidden="true">
     <div class="cover-lightbox-inner" role="dialog" aria-modal="true" aria-label="Portada">
@@ -3366,6 +3383,55 @@
             <small>Diego Y Danna</small>
           </div>
           <div class="cover-badge"><i class="fas fa-heart"></i> Nuestro lugar seguro</div>
+        </div>
+      </div>
+
+      <div class="card scroll-animation pending-section" id="inicioNotificaciones">
+        <div class="card-header">
+          <h2><i class="fas fa-bell"></i> Notificaciones</h2>
+        </div>
+        <div class="card-body">
+          <div style="display:flex; align-items:center; gap: 14px; flex-wrap: wrap;">
+            <button class="pending-icon-btn" id="pendingIconBtn" type="button" onclick="window.onPendingIconClick(event)" title="Ver pendientes" aria-label="Ver pendientes" aria-haspopup="dialog" aria-expanded="false">
+              <img id="pendingIconImg" src="inactiva.png" alt="Pendientes" />
+              <span class="pending-badge" id="pendingTotalBadge" style="display:none;">0</span>
+            </button>
+            <div style="display:flex; flex-direction:column; gap: 2px; min-width: 200px;">
+              <div style="font-weight: 800; color: var(--text-primary);">Pendientes</div>
+              <div style="color: var(--text-tertiary); font-weight: 650; font-size: 0.9rem;">Toca el icono para ver el detalle.</div>
+            </div>
+          </div>
+
+          <div class="pending-panel" id="pendingPanel" aria-hidden="true">
+            <div class="pending-panel-header">
+              <div class="pending-panel-title"><i class="fas fa-bell"></i> Pendientes</div>
+              <button class="pending-panel-close" type="button" onclick="window.togglePendingPanel(false)" aria-label="Cerrar pendientes" title="Cerrar">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="pending-panel-body">
+              <div class="pending-row">
+                <div class="pending-row-left"><i class="fas fa-envelope-open-text"></i> <span>Cartas sin leer</span></div>
+                <div class="pending-row-count"><span id="pendingLetters">0</span></div>
+              </div>
+              <div class="pending-row">
+                <div class="pending-row-left"><i class="fas fa-camera-retro"></i> <span>Fotos nuevas</span></div>
+                <div class="pending-row-count"><span id="pendingPhotos">0</span></div>
+              </div>
+              <div class="pending-row">
+                <div class="pending-row-left"><i class="fas fa-star"></i> <span>Bonelles por calificar</span></div>
+                <div class="pending-row-count"><span id="pendingBonelles">0</span></div>
+              </div>
+
+              <div class="pending-actions">
+                <button class="btn btn-secondary btn-small" type="button" onclick="window.goToTab('cartas'); window.togglePendingPanel(false)"><i class="fas fa-feather-alt"></i> Cartas</button>
+                <button class="btn btn-secondary btn-small" type="button" onclick="window.goToTab('galeria'); window.togglePendingPanel(false)"><i class="fas fa-images"></i> Galería</button>
+                <button class="btn btn-secondary btn-small" type="button" onclick="window.goToTab('bonelles'); window.togglePendingPanel(false)"><i class="fas fa-utensils"></i> Bonelles</button>
+              </div>
+
+              <div class="pending-note"><i class="fas fa-heart"></i> Se actualiza al abrir una carta o la galería.</div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -3989,6 +4055,7 @@
         localStorage.setItem("currentUser", user);
 
         window.ensureSeenMarkers();
+        window.syncExistingPushSubscription?.();
 
         document.body.className = user === "diego" ? "theme-diego" : "theme-danna";
         const badgeEl = document.getElementById("userBadge");
@@ -3999,14 +4066,6 @@
         
         const mainHeader = document.getElementById("mainHeader");
         if (mainHeader) mainHeader.style.display = "block";
-
-        const pendingFloating = document.getElementById("pendingFloating");
-        if (pendingFloating) pendingFloating.style.display = "block";
-
-        // Permite mover el icono flotante y restaurar su posición guardada
-        window.enablePendingFloatingDrag?.();
-        window.restorePendingFloatingPosition?.();
-        window.updatePendingFloatingVisibility?.();
         
         const mainContent = document.getElementById("mainContent");
         if (mainContent) mainContent.style.display = "block";
@@ -4155,6 +4214,7 @@
 
         const photosKey = `ce_lastSeenPhotos_${currentUser}`;
         const lastSeenPhotos = Number(localStorage.getItem(photosKey) || 0);
+        const meLower = String(currentUser).toLowerCase();
         photosSnap.forEach(doc => {
           const data = doc.data() || {};
           const a = (data.author || "").toLowerCase();
@@ -4163,7 +4223,8 @@
 
           const created = data.createdAt?.toDate?.();
           const createdMs = created ? created.getTime() : 0;
-          if (createdMs && createdMs > lastSeenPhotos) pendingPhotos++;
+          // Pendiente = foto nueva de la otra persona (no la tuya)
+          if (createdMs && createdMs > lastSeenPhotos && a && a !== meLower) pendingPhotos++;
         });
         const totalPhotosEl = document.getElementById("dashTotalPhotos");
         if (totalPhotosEl) totalPhotosEl.textContent = String(photosSnap.size);
@@ -4254,6 +4315,42 @@
       return `ce_pendingFloatingPos_${u}`;
     };
 
+    window.clampPendingFloatingToViewport = function() {
+      try {
+        const btn = document.getElementById("pendingIconBtn");
+        if (!btn) return;
+
+        // Solo clamp si está usando left/top (posición guardada)
+        const hasLeftTop = btn.style.left && btn.style.top && btn.style.right === "auto" && btn.style.bottom === "auto";
+        if (!hasLeftTop) return;
+
+        const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+        const btnW = btn.offsetWidth || btn.getBoundingClientRect().width || 0;
+        const btnH = btn.offsetHeight || btn.getBoundingClientRect().height || 0;
+        if (!btnW || !btnH) return;
+
+        const maxLeft = Math.max(0, window.innerWidth - btnW);
+        const maxTop = Math.max(0, window.innerHeight - btnH);
+
+        const left = Number(String(btn.style.left).replace("px", ""));
+        const top = Number(String(btn.style.top).replace("px", ""));
+        if (!Number.isFinite(left) || !Number.isFinite(top)) return;
+
+        const clampedLeft = clamp(left, 0, maxLeft);
+        const clampedTop = clamp(top, 0, maxTop);
+
+        btn.style.left = `${clampedLeft}px`;
+        btn.style.top = `${clampedTop}px`;
+
+        try {
+          localStorage.setItem(window.getPendingFloatingPosKey(), JSON.stringify({ left: clampedLeft, top: clampedTop }));
+        } catch (_) {}
+      } catch (err) {
+        console.error("Error en clampPendingFloatingToViewport:", err);
+      }
+    };
+
     window.restorePendingFloatingPosition = function() {
       try {
         const btn = document.getElementById("pendingIconBtn");
@@ -4272,6 +4369,9 @@
         btn.style.top = `${top}px`;
         btn.style.right = "auto";
         btn.style.bottom = "auto";
+
+        // Si quedó fuera de pantalla (muy común al cambiar de celular/orientación), lo traemos de vuelta.
+        window.clampPendingFloatingToViewport();
       } catch (err) {
         console.error("Error en restorePendingFloatingPosition:", err);
       }
@@ -4282,6 +4382,8 @@
         const panel = document.getElementById("pendingPanel");
         const btn = document.getElementById("pendingIconBtn");
         if (!panel || !btn) return;
+        // En Inicio es inline; no posicionar como flotante.
+        if (panel.closest?.('.pending-section') || btn.closest?.('.pending-section')) return;
         if (!panel.classList.contains("active")) return;
 
         const margin = 12;
@@ -4408,6 +4510,8 @@
         if (window.__pendingDragEnabled) return;
         const btn = document.getElementById("pendingIconBtn");
         if (!btn) return;
+        // Si el botón está dentro de la sección de Inicio (inline), no habilitar drag.
+        if (btn.closest?.('.pending-section')) return;
 
         window.__pendingDragEnabled = true;
         window.__pendingDragJustHappened = false;
@@ -4554,6 +4658,7 @@
         window.addEventListener("resize", () => {
           // Si está abierto, re-posiciona el panel.
           window.positionPendingPanelNearButton();
+          window.clampPendingFloatingToViewport?.();
         });
       } catch (err) {
         console.error("Error en enablePendingFloatingDrag:", err);
@@ -4888,6 +4993,7 @@
 
         const me = String(currentUser).toLowerCase();
         window._bonellesCache = {};
+        window.bindBonellesListInteractions?.();
         const items = [];
         snap.forEach(doc => {
           const data = doc.data() || {};
@@ -4918,9 +5024,9 @@
               const on = n <= value;
               const cls = on ? "is-on" : "";
               const icon = on ? "fa-solid fa-star" : "fa-regular fa-star";
-              const click = canEdit ? `onclick=\"window.rateBonelle(${idJs},${JSON.stringify(String(who))},${n})\"` : "";
+              const bonAttr = `data-bon-id=\"${window.escapeHtml(idRaw)}\" data-who=\"${window.escapeHtml(String(who))}\" data-rating=\"${n}\"`;
               const disabled = canEdit ? "" : "disabled";
-              return `<button type=\"button\" class=\"${cls}\" ${click} ${disabled} aria-label=\"${who} ${n}\"><i class=\"${icon}\"></i></button>`;
+              return `<button type=\"button\" class=\"${cls}\" ${bonAttr} ${disabled} aria-label=\"${who} ${n}\"><i class=\"${icon}\"></i></button>`;
             }).join("");
             return `<div class=\"bon-rating\"><span style=\"min-width:70px;\">${who === "diego" ? "Diego" : "Danna"}</span><span class=\"stars\">${stars}</span></div>`;
           };
@@ -4939,8 +5045,8 @@
                   </div>
                 </div>
                 <div class="bon-actions">
-                  <button type="button" class="bon-edit-btn" onclick="window.editBonelle(${idJs})"><i class="fas fa-pen"></i> Editar</button>
-                  <button type="button" class="bon-delete-btn" onclick="window.deleteBonelle(${idJs})"><i class="fas fa-trash"></i> Eliminar</button>
+                  <button type="button" class="bon-edit-btn" data-bon-id="${window.escapeHtml(idRaw)}"><i class="fas fa-pen"></i> Editar</button>
+                  <button type="button" class="bon-delete-btn" data-bon-id="${window.escapeHtml(idRaw)}"><i class="fas fa-trash"></i> Eliminar</button>
                   <div class="bon-meta" style="justify-content:flex-end;">
                     ${showPending ? `<span class="bon-chip"><i class="fas fa-star"></i> Pendiente tu calificación</span>` : ""}
                   <span class="bon-chip"><i class="fas fa-location-dot"></i> ${whereText}</span>
@@ -4961,6 +5067,62 @@
         console.error("Error en loadBonelles:", err);
         const list = document.getElementById("bonellesList");
         if (list) list.innerHTML = '<p style="text-align:center; color: var(--text-tertiary); padding: 20px;">Error cargando registros.</p>';
+      }
+    };
+
+    window.bindBonellesListInteractions = function() {
+      try {
+        if (window.__bonellesListBound) return;
+        const list = document.getElementById("bonellesList");
+        if (!list) return;
+
+        window.__bonellesListBound = true;
+
+        const handle = (e) => {
+          const target = e.target;
+          if (!target) return;
+
+          const btn = target.closest?.("button");
+          if (!btn) return;
+
+          if (btn.disabled) return;
+
+          // Edit/Delete
+          if (btn.classList.contains("bon-edit-btn")) {
+            const id = btn.getAttribute("data-bon-id");
+            if (!id) return;
+            e.preventDefault();
+            e.stopPropagation();
+            window.editBonelle?.(id);
+            return;
+          }
+
+          if (btn.classList.contains("bon-delete-btn")) {
+            const id = btn.getAttribute("data-bon-id");
+            if (!id) return;
+            e.preventDefault();
+            e.stopPropagation();
+            window.deleteBonelle?.(id);
+            return;
+          }
+
+          // Stars (rating)
+          if (btn.closest?.(".bon-rating") && btn.closest?.(".stars")) {
+            const id = btn.getAttribute("data-bon-id");
+            const who = btn.getAttribute("data-who");
+            const rating = Number(btn.getAttribute("data-rating") || 0);
+            if (!id || !who || !rating) return;
+            e.preventDefault();
+            e.stopPropagation();
+            window.rateBonelle?.(id, who, rating);
+          }
+        };
+
+        // pointerup suele ser más confiable en móvil/PWA; click queda como fallback.
+        list.addEventListener("pointerup", handle, { passive: false });
+        list.addEventListener("click", handle, { passive: false });
+      } catch (err) {
+        console.error("Error en bindBonellesListInteractions:", err);
       }
     };
 
@@ -6196,9 +6358,6 @@
         window.loadLetters();
         window.loadDashboard();
 
-        // Notificar al otro usuario
-        window.sendNotification(`Nueva carta de ${currentUser.charAt(0).toUpperCase() + currentUser.slice(1)}`, `"${title}"`);
-
         // Push real (segundo plano) al otro usuario
         try {
           const other = otherUserFor(currentUser);
@@ -7040,8 +7199,8 @@
       if (!("Notification" in window) || Notification.permission !== "granted") return;
       new Notification(title, { 
         body: body,
-        icon: "https://via.placeholder.com/192",
-        badge: "https://via.placeholder.com/96"
+        icon: "/portada.jpeg",
+        badge: "/portada.jpeg"
       });
     };
 
@@ -7094,6 +7253,25 @@
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       }, { merge: true });
     }
+
+    // Si ya existe una suscripción push, la asociamos silenciosamente al usuario actual.
+    // Evita recibir push del usuario anterior en este mismo dispositivo.
+    window.syncExistingPushSubscription = async function() {
+      try {
+        if (!currentUser) return;
+        if (!("Notification" in window) || Notification.permission !== "granted") return;
+        if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+        if (!location.protocol.startsWith("https") && location.hostname !== "localhost") return;
+
+        const reg = await registerPushServiceWorker();
+        const subscription = await reg.pushManager.getSubscription();
+        if (!subscription) return;
+
+        await savePushSubscription(subscription);
+      } catch (err) {
+        console.warn("syncExistingPushSubscription warning:", err);
+      }
+    };
 
     window.enablePushNotifications = async function() {
       try {
