@@ -3954,6 +3954,8 @@
           <div style="display:flex; gap: 10px; flex-wrap: wrap; align-items:center;">
             <button class="btn btn-secondary" onclick="window.enableNotifications()"><i class="fas fa-check-circle"></i> Activar (solo con la app abierta)</button>
             <button class="btn btn-primary" onclick="window.enablePushNotifications()"><i class="fas fa-bell"></i> Activar Push (en segundo plano)</button>
+            <button class="btn btn-secondary" onclick="window.debugPushStatus()"><i class="fas fa-bug"></i> Diagnosticar Push</button>
+            <button class="btn btn-secondary" onclick="window.testPushNow()"><i class="fas fa-paper-plane"></i> Probar Push ahora</button>
           </div>
           <p style="color: var(--text-tertiary); font-size: 0.85rem; margin-top: 12px;">
             <i class="fas fa-mobile-alt"></i> En iPhone necesitas <strong>Agregar a pantalla de inicio</strong> (PWA) para recibir push en segundo plano.
@@ -7276,6 +7278,128 @@
       return "";
     }
 
+    function isIOSDevice() {
+      return /iphone|ipad|ipod/i.test(navigator.userAgent || "");
+    }
+
+    function isStandaloneApp() {
+      // iOS: navigator.standalone | general: display-mode
+      // (Safari iOS suele exponer Push solo en modo standalone)
+      return (
+        (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+        // @ts-ignore
+        (typeof navigator !== "undefined" && navigator.standalone === true)
+      );
+    }
+
+    window.debugPushStatus = async function() {
+      try {
+        const status = {
+          protocol: location.protocol,
+          host: location.host,
+          isIOS: isIOSDevice(),
+          standalone: isStandaloneApp(),
+          hasNotification: ("Notification" in window),
+          permission: ("Notification" in window) ? Notification.permission : "n/a",
+          hasServiceWorker: ("serviceWorker" in navigator),
+          hasPushManager: ("PushManager" in window),
+        };
+
+        console.log("[push] status:", status);
+
+        let hasRegistration = false;
+        let hasSubscription = false;
+        let subscriptionHost = "";
+
+        if (status.hasServiceWorker) {
+          try {
+            const reg = await navigator.serviceWorker.getRegistration("/");
+            console.log("[push] sw registration:", reg);
+
+            if (reg) {
+              hasRegistration = true;
+              try {
+                const sub = await reg.pushManager.getSubscription();
+                hasSubscription = !!sub;
+                if (sub && sub.endpoint) {
+                  try { subscriptionHost = new URL(sub.endpoint).host; } catch (_) {}
+                }
+                console.log("[push] subscription:", sub);
+              } catch (e) {
+                console.log("[push] getSubscription error:", e);
+              }
+            }
+          } catch (e) {
+            console.log("[push] sw registration error:", e);
+          }
+        }
+
+        let pushConfigStatus = "";
+        let pushConfigOk = false;
+
+        try {
+          const res = await fetch("/api/push-config", { cache: "no-store" });
+          console.log("[push] /api/push-config:", res.status);
+          pushConfigStatus = String(res.status);
+          if (res.ok) {
+            pushConfigOk = true;
+            console.log("[push] vapid:", await res.json());
+          } else {
+            console.log("[push] push-config text:", await res.text());
+          }
+        } catch (e) {
+          pushConfigStatus = "fetch error";
+          console.log("[push] push-config fetch error:", e);
+        }
+
+        const summary = [
+          `iOS: ${status.isIOS ? 'sí' : 'no'}`,
+          `Standalone (icono): ${status.standalone ? 'sí' : 'no'}`,
+          `Permiso: ${status.permission}`,
+          `SW: ${hasRegistration ? 'registrado' : 'no'}`,
+          `Suscripción Push: ${hasSubscription ? 'sí' : 'no'}`,
+          subscriptionHost ? `Endpoint: ${subscriptionHost}` : '',
+          `push-config: ${pushConfigOk ? 'ok' : 'fail'} (${pushConfigStatus || '-'})`,
+          '',
+          'Tip iPhone: Ajustes > Notificaciones > (Website Notifications)'
+        ].filter(Boolean).join('\n');
+
+        alert(summary);
+      } catch (e) {
+        console.log("[push] debugPushStatus error:", e);
+      }
+    };
+
+    window.testPushNow = async function() {
+      try {
+        if (!currentUser) {
+          window.showToast("Inicia sesión primero", "error");
+          return;
+        }
+        if (!("Notification" in window) || Notification.permission !== "granted") {
+          window.showToast("Primero activa Push y concede permisos", "error");
+          return;
+        }
+        if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+          window.showToast("Push no es compatible en este navegador", "error");
+          return;
+        }
+
+        window.showToast("Enviando push de prueba...", "info");
+        await window.sendPushToUser(
+          safeLowerUser(currentUser),
+          "Prueba de notificación",
+          "Si ves esto, el push funciona ✅",
+          { url: "/" }
+        );
+        window.showToast("Push enviado. Si no llega, revisa Diagnosticar Push", "success");
+      } catch (e) {
+        console.warn("testPushNow error:", e);
+        const msg = e && e.message ? String(e.message) : String(e);
+        window.showToast("No se pudo enviar push: " + msg, "error");
+      }
+    };
+
     async function registerPushServiceWorker() {
       if (!("serviceWorker" in navigator)) throw new Error("Service Worker no soportado");
       return await navigator.serviceWorker.register("/sw.js", { scope: "/" });
@@ -7311,6 +7435,7 @@
     window.syncExistingPushSubscription = async function() {
       try {
         if (!currentUser) return;
+        if (isIOSDevice() && !isStandaloneApp()) return;
         if (!("Notification" in window) || Notification.permission !== "granted") return;
         if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
         if (!location.protocol.startsWith("https") && location.hostname !== "localhost") return;
@@ -7331,6 +7456,14 @@
           window.showToast("Tu navegador no soporta notificaciones", "error");
           return;
         }
+
+        // Web Push en iOS funciona (principalmente) cuando la web está instalada como app
+        // (Compartir → Añadir a pantalla de inicio) y se abre desde el icono.
+        if (isIOSDevice() && !isStandaloneApp()) {
+          window.showToast("En iPhone/iPad: primero 'Añadir a pantalla de inicio' y abre desde el icono para activar push", "error");
+          return;
+        }
+
         if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
           window.showToast("Push no es compatible en este navegador", "error");
           return;
@@ -7344,9 +7477,14 @@
           return;
         }
 
+        if (Notification.permission === "denied") {
+          window.showToast("Notificaciones bloqueadas. Ve a Ajustes > Notificaciones y actívalas para esta app", "error");
+          return;
+        }
+
         const perm = await Notification.requestPermission();
         if (perm !== "granted") {
-          window.showToast("Permiso de notificaciones denegado", "error");
+          window.showToast("Permiso de notificaciones no concedido", "error");
           return;
         }
 
@@ -7366,7 +7504,9 @@
         window.showToast("Push activado (segundo plano)", "success");
       } catch (err) {
         console.error("enablePushNotifications error:", err);
-        window.showToast("No se pudo activar push: " + (err.message || err), "error");
+        const name = err && err.name ? String(err.name) : "Error";
+        const msg = err && err.message ? String(err.message) : String(err);
+        window.showToast("No se pudo activar push (" + name + "): " + msg, "error");
       }
     };
 

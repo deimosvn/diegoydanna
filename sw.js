@@ -32,19 +32,24 @@ self.addEventListener('activate', (event) => {
 
 // Estrategia de cache: Network first, fallback to cache
 self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  const url = new URL(req.url);
+
+  // Evita romper peticiones no-GET (cache.put lanza) y evita cachear cross-origin.
+  const isCacheable = req.method === 'GET' && url.origin === self.location.origin;
+
   event.respondWith(
-    fetch(event.request)
+    fetch(req)
       .then((response) => {
-        // Clonar la respuesta porque es un stream de una sola lectura
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
+        if (isCacheable && response && (response.ok || response.type === 'opaque')) {
+          const responseToCache = response.clone();
+          event.waitUntil(
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, responseToCache)).catch(() => {})
+          );
+        }
         return response;
       })
-      .catch(() => {
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(req))
   );
 });
 
