@@ -674,9 +674,69 @@
 
     .header-actions {
       display: flex;
-      gap: 12px;
-      align-items: center;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
       flex: 0 0 auto;
+      min-width: 0;
+    }
+
+    .header-user-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    /* Botón grande sin borde (solo imagen activa/inactiva) */
+    .notif-icon-btn {
+      position: relative;
+      width: 56px;
+      height: 56px;
+      border: none;
+      background: none;
+      padding: 0;
+      margin: 0;
+      border-radius: 999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      transition: var(--transition-fast);
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .notif-icon-btn:hover {
+      transform: translateY(-1px);
+      opacity: 0.92;
+    }
+
+    .notif-icon-btn:active {
+      transform: translateY(0px);
+    }
+
+    .notif-icon-btn:focus-visible {
+      box-shadow: 0 0 0 4px var(--ring-strong);
+    }
+
+    .notif-icon-btn img {
+      width: 56px;
+      height: 56px;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+      transform: none;
+    }
+
+    .pending-badge.pending-badge--header {
+      top: -6px;
+      right: -6px;
+      min-width: 26px;
+      height: 26px;
+      padding: 0 8px;
+      font-size: 0.85rem;
     }
 
     /* ==================== PENDINGS ICON + MINI PANEL ==================== */
@@ -964,9 +1024,13 @@
     /* Header responsive con icono grande */
     @media (max-width: 480px) {
       .header-actions {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        align-items: center;
+        width: 100%;
+        align-items: stretch;
+      }
+
+      .header-user-row {
+        width: 100%;
+        justify-content: space-between;
       }
 
       .user-badge {
@@ -979,15 +1043,14 @@
 
     @media (max-width: 360px) {
       .header-actions {
-        grid-template-columns: auto 1fr;
-        grid-template-rows: auto auto;
-        gap: 8px;
+        gap: 10px;
       }
 
       .logout-btn {
-        grid-column: 1 / -1;
         justify-self: stretch;
         text-align: center;
+        width: 100%;
+        justify-content: center;
       }
     }
 
@@ -3398,7 +3461,13 @@
         </div>
       </div>
       <div class="header-actions">
-        <div class="user-badge" id="userBadge"></div>
+        <div class="header-user-row">
+          <div class="user-badge" id="userBadge"></div>
+          <button class="notif-icon-btn" id="pendingIconBtnHeader" type="button" onclick="window.onPendingIconClick(event)" title="Ver pendientes" aria-label="Ver pendientes" aria-haspopup="dialog" aria-expanded="false">
+            <img id="pendingIconImgHeader" src="inactiva.png" alt="Pendientes" />
+            <span class="pending-badge pending-badge--header" id="pendingTotalBadgeHeader" style="display:none;">0</span>
+          </button>
+        </div>
         <button class="logout-btn" onclick="window.logout()"><i class="fas fa-sign-out-alt"></i> Salir</button>
       </div>
     </div>
@@ -4334,19 +4403,29 @@
 
     window.updatePendingBadge = function(pendingLetters, pendingPhotos, pendingBonelles) {
       try {
-        const btn = document.getElementById("pendingIconBtn");
-        const badge = document.getElementById("pendingTotalBadge");
-        const iconImg = document.getElementById("pendingIconImg");
-        if (!btn || !badge) return;
+        const btnA = document.getElementById("pendingIconBtn");
+        const badgeA = document.getElementById("pendingTotalBadge");
+        const iconImgA = document.getElementById("pendingIconImg");
+
+        const btnB = document.getElementById("pendingIconBtnHeader");
+        const badgeB = document.getElementById("pendingTotalBadgeHeader");
+        const iconImgB = document.getElementById("pendingIconImgHeader");
+
+        if (!btnA || !badgeA) return;
 
         const total = Math.max(0, Number(pendingLetters) || 0) + Math.max(0, Number(pendingPhotos) || 0) + Math.max(0, Number(pendingBonelles) || 0);
-        badge.textContent = String(total);
+        badgeA.textContent = String(total);
+        if (badgeB) badgeB.textContent = String(total);
 
         const active = total > 0;
-        badge.style.display = active ? "inline-flex" : "none";
-        btn.classList.toggle("has-pending", active);
+        badgeA.style.display = active ? "inline-flex" : "none";
+        btnA.classList.toggle("has-pending", active);
 
-        if (iconImg) iconImg.src = active ? "activa.png" : "inactiva.png";
+        if (badgeB) badgeB.style.display = active ? "inline-flex" : "none";
+        if (btnB) btnB.classList.toggle("has-pending", active);
+
+        if (iconImgA) iconImgA.src = active ? "activa.png" : "inactiva.png";
+        if (iconImgB) iconImgB.src = active ? "activa.png" : "inactiva.png";
       } catch (err) {
         console.error("Error en updatePendingBadge:", err);
       }
@@ -4537,15 +4616,17 @@
     window.togglePendingPanel = function(force) {
       try {
         const panel = document.getElementById("pendingPanel");
-        const btn = document.getElementById("pendingIconBtn");
-        if (!panel || !btn) return;
+        const btnA = document.getElementById("pendingIconBtn");
+        const btnB = document.getElementById("pendingIconBtnHeader");
+        if (!panel || !btnA) return;
 
         const openNow = panel.classList.contains("active");
         const next = typeof force === "boolean" ? force : !openNow;
 
         panel.classList.toggle("active", next);
         panel.setAttribute("aria-hidden", next ? "false" : "true");
-        btn.setAttribute("aria-expanded", next ? "true" : "false");
+        btnA.setAttribute("aria-expanded", next ? "true" : "false");
+        if (btnB) btnB.setAttribute("aria-expanded", next ? "true" : "false");
 
         if (next) {
           // "Revisar" = abrir la mini-pestaña
@@ -4871,10 +4952,11 @@
     document.addEventListener("click", (e) => {
       const panel = document.getElementById("pendingPanel");
       const btn = document.getElementById("pendingIconBtn");
+      const btnHeader = document.getElementById("pendingIconBtnHeader");
       if (!panel || !btn) return;
       if (!panel.classList.contains("active")) return;
       const t = e.target;
-      if (panel.contains(t) || btn.contains(t)) return;
+      if (panel.contains(t) || btn.contains(t) || (btnHeader && btnHeader.contains(t))) return;
       window.togglePendingPanel(false);
     });
 
