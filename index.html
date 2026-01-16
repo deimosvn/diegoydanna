@@ -691,8 +691,8 @@
     /* Botón grande sin borde (solo imagen activa/inactiva) */
     .notif-icon-btn {
       position: relative;
-      width: 56px;
-      height: 56px;
+      width: 76px;
+      height: 76px;
       border: none;
       background: none;
       padding: 0;
@@ -721,8 +721,8 @@
     }
 
     .notif-icon-btn img {
-      width: 56px;
-      height: 56px;
+      width: 76px;
+      height: 76px;
       object-fit: contain;
       display: block;
       pointer-events: none;
@@ -731,12 +731,24 @@
     }
 
     .pending-badge.pending-badge--header {
-      top: -6px;
-      right: -6px;
-      min-width: 26px;
-      height: 26px;
-      padding: 0 8px;
-      font-size: 0.85rem;
+      top: -8px;
+      right: -8px;
+      min-width: 30px;
+      height: 30px;
+      padding: 0 9px;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 520px) {
+      .notif-icon-btn {
+        width: 68px;
+        height: 68px;
+      }
+
+      .notif-icon-btn img {
+        width: 68px;
+        height: 68px;
+      }
     }
 
     /* ==================== PENDINGS ICON + MINI PANEL ==================== */
