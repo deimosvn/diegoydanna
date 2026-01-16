@@ -7282,7 +7282,7 @@
     }
 
     async function fetchVapidPublicKey() {
-      const res = await fetch("/.netlify/functions/push-config", { cache: "no-store" });
+      const res = await fetch("/api/push-config", { cache: "no-store" });
       if (!res.ok) throw new Error("No se pudo leer la config push");
       const data = await res.json();
       if (!data || !data.publicKey) throw new Error("Config push inválida");
@@ -7371,7 +7371,7 @@
     };
 
     window.sendPushToUser = async function(targetUser, title, body, data = {}) {
-      const res = await fetch("/.netlify/functions/send-push", {
+      const res = await fetch("/api/send-push", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
