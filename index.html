@@ -6,6 +6,7 @@
   <meta name="theme-color" content="#0f1220" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Diego Y Danna" />
   <title>Diego Y Danna</title>
 
   <link rel="manifest" href="manifest.webmanifest" />
@@ -47,11 +48,17 @@
       --text-primary: #0f172a;
       --text-secondary: #475569;
       --text-tertiary: #94a3b8;
-      --text-light: #e2e8f0;
+      --text-light: #e5e7eb;
 
       --bg-light: #f8fafc;
       --bg-white: #ffffff;
       --bg-dark: #1e293b;
+
+      /* Superficies modernas (glass) */
+      --border: rgba(15, 23, 42, 0.10);
+      --surface: rgba(255, 255, 255, 0.76);
+      --surface-strong: rgba(255, 255, 255, 0.92);
+      --surface-muted: rgba(248, 250, 252, 0.70);
 
       --radius-xs: 4px;
       --radius-sm: 8px;
@@ -63,9 +70,13 @@
       --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
       
       --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+      --shadow-md: 0 6px 14px -6px rgb(0 0 0 / 0.18);
+      --shadow-lg: 0 14px 28px -14px rgb(0 0 0 / 0.22);
+      --shadow-xl: 0 28px 60px -28px rgb(0 0 0 / 0.35);
+
+      /* Focus rings */
+      --ring: rgba(59, 130, 246, 0.18);
+      --ring-strong: rgba(59, 130, 246, 0.28);
 
       /* Pendientes (icono fijo) */
       --pending-btn-size: 132px;
@@ -75,7 +86,10 @@
 
     /* DIEGO THEME */
     body.theme-diego {
-      background: linear-gradient(135deg, #f0f9ff 0%, #eff6ff 100%);
+      background:
+        radial-gradient(1100px 760px at 12% 10%, rgba(37, 99, 235, 0.16), transparent 58%),
+        radial-gradient(900px 680px at 88% 22%, rgba(59, 130, 246, 0.14), transparent 60%),
+        linear-gradient(135deg, #f7fbff 0%, #eef5ff 55%, #ffffff 100%);
       color: var(--text-primary);
     }
 
@@ -85,7 +99,10 @@
 
     /* DANNA THEME */
     body.theme-danna {
-      background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%);
+      background:
+        radial-gradient(1100px 760px at 12% 10%, rgba(219, 39, 119, 0.16), transparent 58%),
+        radial-gradient(900px 680px at 88% 22%, rgba(236, 72, 153, 0.14), transparent 60%),
+        linear-gradient(135deg, #fff7fb 0%, #fde9f3 55%, #ffffff 100%);
       color: var(--text-primary);
     }
 
@@ -99,6 +116,26 @@
       -webkit-font-smoothing: antialiased;
       -webkit-tap-highlight-color: transparent;
       -webkit-text-size-adjust: 100%;
+      min-height: 100dvh;
+      text-rendering: optimizeLegibility;
+    }
+
+    *, *::before, *::after {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    :focus-visible {
+      outline: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
     }
 
     /* ==================== LOGIN SCREEN ==================== */
@@ -126,9 +163,12 @@
       width: 90%;
       animation: slideUpFade 0.8s ease;
       padding: 60px 40px;
-      background: var(--bg-white);
+      background: var(--surface-strong);
+      border: 1px solid var(--border);
       border-radius: var(--radius-xl);
       box-shadow: var(--shadow-xl);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
     }
 
     @keyframes slideUpFade {
@@ -509,8 +549,8 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      background: var(--bg-white);
-      border-bottom: 1px solid var(--text-light);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
       padding: calc(12px + env(safe-area-inset-top)) 0 12px;
       box-shadow: var(--shadow-sm);
       backdrop-filter: blur(10px);
@@ -749,8 +789,8 @@
       right: calc(var(--pending-offset) + env(safe-area-inset-right));
       bottom: calc(var(--pending-offset) + env(safe-area-inset-bottom) + var(--pending-btn-size) + 12px);
       width: min(460px, calc(100vw - 32px));
-      background: var(--bg-white);
-      border: 1px solid var(--text-light);
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-xl);
       overflow: hidden;
@@ -760,6 +800,8 @@
       transform: translateY(-8px);
       transition: var(--transition);
       z-index: 10060;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
     .pending-panel.active {
@@ -810,8 +852,8 @@
 
     .pending-panel-header {
       padding: 14px 16px;
-      border-bottom: 1px solid var(--text-light);
-      background: var(--bg-light);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-muted);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -830,8 +872,8 @@
       width: 36px;
       height: 36px;
       border-radius: var(--radius-md);
-      border: 1px solid var(--text-light);
-      background: var(--bg-white);
+      border: 1px solid var(--border);
+      background: var(--surface-strong);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -1011,8 +1053,8 @@
       display: flex;
       gap: 8px;
       margin-bottom: 32px;
-      border: 1px solid var(--text-light);
-      background: var(--bg-white);
+      border: 1px solid var(--border);
+      background: var(--surface);
       padding: 8px;
       border-radius: 999px;
       box-shadow: var(--shadow-sm);
@@ -1021,6 +1063,8 @@
       scroll-snap-type: x proximity;
       scroll-padding-left: 8px;
       scroll-padding-right: 8px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     .tabs::-webkit-scrollbar { height: 0; }
@@ -1109,27 +1153,30 @@
 
     /* ==================== CARDS ==================== */
     .card {
-      background: var(--bg-white);
-      border: 1px solid var(--text-light);
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       overflow: hidden;
       transition: var(--transition);
       box-shadow: var(--shadow-sm);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
     }
 
     .card:hover {
       box-shadow: var(--shadow-md);
-      border-color: var(--text-secondary);
+      border-color: color-mix(in srgb, var(--text-secondary) 55%, var(--border));
+      transform: translateY(-1px);
     }
 
     .card-header {
       padding: 24px;
-      border-bottom: 1px solid var(--text-light);
+      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 16px;
-      background: var(--bg-light);
+      background: var(--surface-muted);
     }
 
     .card-header h2 {
@@ -1947,8 +1994,8 @@
     input, select, textarea {
       width: 100%;
       padding: 12px 14px;
-      background: var(--bg-light);
-      border: 1px solid var(--text-light);
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
       color: var(--text-primary);
       font-family: inherit;
@@ -1963,22 +2010,22 @@
     input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: var(--text-secondary);
-      background: var(--bg-white);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      background: var(--surface-strong);
+      box-shadow: 0 0 0 4px var(--ring);
     }
 
     body.theme-diego input:focus,
     body.theme-diego select:focus,
     body.theme-diego textarea:focus {
       border-color: var(--diego-primary);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.18);
     }
 
     body.theme-danna input:focus,
     body.theme-danna select:focus,
     body.theme-danna textarea:focus {
       border-color: var(--danna-primary);
-      box-shadow: 0 0 0 3px rgba(219, 39, 119, 0.1);
+      box-shadow: 0 0 0 4px rgba(219, 39, 119, 0.18);
     }
 
     textarea {
@@ -2004,6 +2051,11 @@
       gap: 8px;
       position: relative;
       overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:focus-visible {
+      box-shadow: 0 0 0 4px var(--ring-strong);
     }
 
     .btn i {
@@ -2019,21 +2071,21 @@
     }
 
     body.theme-diego .btn-primary {
-      background: var(--diego-primary);
+      background: linear-gradient(135deg, var(--diego-primary), var(--diego-secondary));
     }
 
     body.theme-diego .btn-primary:hover {
-      background: var(--diego-secondary);
+      background: linear-gradient(135deg, var(--diego-secondary), var(--diego-primary));
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
 
     body.theme-danna .btn-primary {
-      background: var(--danna-primary);
+      background: linear-gradient(135deg, var(--danna-primary), var(--danna-secondary));
     }
 
     body.theme-danna .btn-primary:hover {
-      background: var(--danna-secondary);
+      background: linear-gradient(135deg, var(--danna-secondary), var(--danna-primary));
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(219, 39, 119, 0.3);
     }
